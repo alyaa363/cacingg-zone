@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Zona Cacing</title>
+<link rel="stylesheet" href="style.css">
+<style>
+
+/* === MOBILE LANDSCAPE + FULLSCREEN REVISION === */
+html, body {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+body {
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
+}
+
+#game, #gameContainer, #game-container, .game-container, .game-screen, canvas {
+  max-width: 100vw;
+  max-height: 100dvh;
+}
+
+@media (orientation: landscape) and (max-width: 1024px) {
+  body {
+    width: 100vw;
+    height: 100dvh;
+  }
+
+  #game, #gameContainer, #game-container, .game-container, .game-screen {
+    width: 100vw !important;
+    height: 100dvh !important;
+    max-width: none !important;
+    max-height: none !important;
+  }
+
+  canvas {
+    width: 100vw !important;
+    height: 100dvh !important;
+    display: block;
+  }
+}
+
+@media (orientation: portrait) and (max-width: 1024px) {
+  /* The game asks the browser to rotate to landscape where supported. */
+  body::before {
+    content: "Putar HP ke posisi LANDSCAPE ↔️";
+    position: fixed;
+    inset: 0;
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    box-sizing: border-box;
+    background: #ffd6ec;
+    color: #7a2452;
+    font-size: clamp(20px, 5vw, 36px);
+    font-weight: 800;
+    text-align: center;
+  }
+}
+
+@supports (height: 100dvh) {
+  body, #game, #gameContainer, #game-container, .game-container, .game-screen {
+    min-height: 100dvh;
+  }
+}
+
+@supports (padding: env(safe-area-inset-top)) {
+  #joystick, .joystick, .mobile-joystick, .joystick-container {
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+  }
+}
+/* === END REVISION === */
+
+</style>
+</head>
+<body>
+<div class="game">
+<header class="topbar">
+  <div class="brand"><span>🐍</span><div><h1>ZONA CACING</h1><small>Grow • Dodge • Survive</small></div></div>
+  <div class="stats"><div><small>KESEMPATAN</small><b id="lives">3 ❤️</b></div>
+    <div><small>SKOR</small><b id="score">0</b></div>
+    <div><small>WAKTU</small><b><span id="time">200</span>s</b></div>
+  </div>
+</header>
+<div class="arena">
+<canvas id="gameCanvas" width="900" height="560"></canvas>
+
+<div id="startScreen" class="screen">
+ <div class="card">
+  <div class="logo">🐛</div>
+  <h2>Zona Cacing</h2>
+  <p>Makan makanan supaya cacingmu semakin panjang.</p>
+  <p class="danger">⚠️ Jangan menabrak cacing lain!</p>
+  <h3>Pilih warna cacing</h3>
+  <div class="colors">
+   <button class="color active" data-color="#55e878" style="--c:#55e878"></button>
+   <button class="color" data-color="#4db5ff" style="--c:#4db5ff"></button>
+   <button class="color" data-color="#ff5d91" style="--c:#ff5d91"></button>
+   <button class="color" data-color="#ffd34d" style="--c:#ffd34d"></button>
+   <button class="color" data-color="#b66cff" style="--c:#b66cff"></button>
+   <button class="color" data-color="#ff914d" style="--c:#ff914d"></button>
+  </div>
+  <div class="food-list">🍎 +10 &nbsp; 🍓 +15 &nbsp; 🍇 +20 &nbsp; 🍊 +12 &nbsp; 🍉 +25</div>
+  <button id="startBtn" type="button">MULAI GAME</button>
+  <div class="controls">PC: WASD / Arrow Keys • Android: gunakan joystick</div>
+ </div>
+</div>
+
+<div id="gameOverScreen" class="screen hidden">
+ <div class="card">
+  <div class="dead">💥</div>
+  <h2>GAME OVER</h2>
+  <p>Cacingmu bertabrakan dengan cacing lain.</p>
+  <div class="result">SKOR AKHIR <strong id="finalScore">0</strong></div>
+  <button id="restartBtn" type="button">MAIN LAGI</button>
+ </div>
+</div>
+</div>
+</div>
+<div id="joystick" aria-label="Joystick Virtual"><div id="stick"></div></div>
+<script src="script.js"></script>
+<script>
+
+/* === MOBILE LANDSCAPE + FULLSCREEN JS === */
+(function () {
+  const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  if (!isMobile) return;
+
+  async function enterGameFullscreen() {
+    try {
+      const el = document.documentElement;
+      if (!document.fullscreenElement && el.requestFullscreen) {
+        await el.requestFullscreen({ navigationUI: "hide" });
+      }
+    } catch (e) {}
+    try {
+      if (screen.orientation && screen.orientation.lock) {
+        await screen.orientation.lock("landscape");
+      }
+    } catch (e) {}
+  }
+
+  // Browsers usually allow fullscreen/orientation lock only after a user gesture.
+  document.addEventListener("click", enterGameFullscreen, { once: true, passive: true });
+  document.addEventListener("touchstart", enterGameFullscreen, { once: true, passive: true });
+
+  window.addEventListener("resize", function () {
+    document.documentElement.style.setProperty("--vw", window.innerWidth + "px");
+    document.documentElement.style.setProperty("--vh", window.innerHeight + "px");
+  });
+})();
+/* === END MOBILE LANDSCAPE JS === */
+
+</script>
+</body>
+</html>
